@@ -8,7 +8,7 @@ Add the dependency to your `build.gradle.kts`:
 
 ```gradle
 dependencies {
-    implementation("com.github.initdc:kt.types")
+    implementation("kt.types:lib:0.0.1")
 }
 ```
 

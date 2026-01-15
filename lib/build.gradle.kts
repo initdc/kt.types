@@ -5,15 +5,20 @@
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/9.2.1/userguide/building_java_projects.html in the Gradle documentation.
  */
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     alias(libs.plugins.kotlin.jvm)
 
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+    `maven-publish`
 }
 
 repositories {
+    mavenLocal()
     // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
@@ -25,14 +30,14 @@ dependencies {
     // Use the JUnit 5 integration.
     testImplementation(libs.junit.jupiter.engine)
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api(libs.commons.math3)
+    // api(libs.commons.math3)
 
     // This dependency is used internally, and not exposed to consumers on their own compile
     // classpath.
-    implementation(libs.guava)
+    // implementation(libs.guava)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -41,4 +46,79 @@ java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    testLogging {
+        showExceptions = true
+        showStandardStreams = true
+        events = setOf(TestLogEvent.PASSED, TestLogEvent.FAILED, TestLogEvent.SKIPPED)
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+}
+
+val user = "initdc"
+val repo = "kt.types"
+val github = "github.com/$user/$repo"
+
+publishing {
+    publications {
+        repositories {
+            maven {
+                name = "central"
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = project.findProperty("sonatype.user") as String? ?: System.getenv("SONAUSER")
+                    password = project.findProperty("sonatype.key") as String? ?: System.getenv("SONAKEY")
+                }
+            }
+
+            maven {
+                name = "snapshot"
+                url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+                credentials {
+                    username = project.findProperty("sonatype.user") as String? ?: System.getenv("SONAUSER")
+                    password = project.findProperty("sonatype.key") as String? ?: System.getenv("SONAKEY")
+                }
+            }
+
+            maven {
+                name = "github"
+                url = uri("https://maven.pkg.github.com/$user/$repo")
+                credentials {
+                    username = project.findProperty("gpr.user") as String? ?: System.getenv("GHPUSER")
+                    password = project.findProperty("gpr.key") as String? ?: System.getenv("GHPKEY")
+                }
+            }
+        }
+        create<MavenPublication>("lib") {
+            groupId = "kt.types"
+            artifactId = "lib"
+            version = "0.0.1"
+
+            from(components["kotlin"])
+
+            pom {
+                name = repo
+                description = "Bring the Rust [Result Option] types to Kotlin"
+                url = "https://$github"
+
+                licenses {
+                    license {
+                        name = "Mozilla Public License 2.0"
+                        url = "https://www.mozilla.org/MPL/2.0/"
+                    }
+                }
+                developers {
+                    developer {
+                        id = user
+                        name = user
+                        email = "initd@outlook.com"
+                    }
+                }
+                scm {
+                    connection = "scm:git:git://$github.git"
+                    developerConnection = "scm:git:ssh://$github.git"
+                    url = "https://$github"
+                }
+            }
+        }
+    }
 }
