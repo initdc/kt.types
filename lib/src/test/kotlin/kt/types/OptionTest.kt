@@ -6,30 +6,39 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 internal class OptionTest {
+    val s = Some(2)
+    val n = None<Int>()
+
     @Test
     fun testNew() {
-        val s = Some(2)
-        val n = None<Int>()
-
         assertEquals(s, Some(2))
         assertEquals(n, None<Int>())
     }
 
     @Test
     fun testIsSome() {
-        val s = Some(2)
-        val n = None<Int>()
-
         assertTrue(s.isSome())
         assertFalse(n.isSome())
     }
 
     @Test
     fun testIsNone() {
-        val s = Some(2)
-        val n = None<Int>()
-
         assertFalse(s.isNone())
         assertTrue(n.isNone())
+    }
+
+    @Test
+    fun testFrom() {
+        assertEquals(Option.from(2), s)
+
+        var x: Int? = 2
+        assertEquals(Option.fromNullable(x), s)
+        x = null
+        assertEquals(Option.fromNullable(x), n)
+
+        var f: () -> Int = { 2 }
+        assertEquals(Option.fromThrowable(f), s)
+        f = { throw Exception("bad") }
+        assertEquals(Option.fromThrowable(f), n)
     }
 }
