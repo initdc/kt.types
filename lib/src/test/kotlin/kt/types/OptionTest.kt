@@ -1,8 +1,10 @@
 package kt.types
 
+import kotlin.reflect.typeOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 internal class OptionTest {
@@ -13,6 +15,9 @@ internal class OptionTest {
     fun testNew() {
         assertEquals(s, Some(2))
         assertEquals(n, None<Int>())
+        assertEquals(n, Option.None<Int>(typeOf<Int>()))
+        assertNotEquals(n, None<Byte>())
+        assertNotEquals(n, None<Float>())
     }
 
     @Test
@@ -34,11 +39,17 @@ internal class OptionTest {
         var x: Int? = 2
         assertEquals(Option.fromNullable(x), s)
         x = null
-        assertEquals(Option.fromNullable(x), n)
+        assertEquals(Option.fromNullable<Int>(x), n)
+
+        val x2: Int? = null
+        assertEquals(Option.fromNullable(x2), n)
 
         var f: () -> Int = { 2 }
         assertEquals(Option.fromThrowable(f), s)
         f = { throw Exception("bad") }
-        assertEquals(Option.fromThrowable(f), n)
+        assertEquals(Option.fromThrowable<Int>(f), n)
+
+        val f2: () -> Int = { throw Exception("bad") }
+        assertEquals(Option.fromThrowable(f2), n)
     }
 }

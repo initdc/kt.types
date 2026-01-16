@@ -1,33 +1,37 @@
 package kt.types
 
-sealed class Option<out T> {
-    data class Some<T>(private val value: T) : Option<T>()
+import kotlin.reflect.KType
+import kotlin.reflect.typeOf
 
-    object None : Option<Nothing>()
+sealed class Option {
+    data class Some<T : Any>(private val value: T, val valueType: KType) : Option()
+
+    data class None<T : Any>(val valueType: KType) : Option()
 
     companion object {
-        fun <T> from(value: T): Option<T> = Option.Some(value)
-        fun <T> fromNullable(value: T?): Option<T> {
+        inline fun <reified T : Any> from(value: T): Option = Option.Some<T>(value, typeOf<T>())
+
+        inline fun <reified T : Any> fromNullable(value: T?): Option {
             if (value == null) {
-                return Option.None
+                return Option.None<T>(typeOf<T>())
             }
-            return Option.Some(value)
+            return Option.Some<T>(value, typeOf<T>())
         }
 
-        fun <T> fromThrowable(f: () -> T): Option<T> {
+        inline fun <reified T : Any> fromThrowable(f: () -> T): Option {
             try {
-                return Option.Some(f())
+                return Option.Some<T>(f(), typeOf<T>())
             } catch (e: Exception) {
-                return Option.None
+                return Option.None<T>(typeOf<T>())
             }
         }
     }
 
-    fun isSome(): Boolean = this is Option.Some
+    fun isSome(): Boolean = this is Option.Some<*>
 
-    fun isNone(): Boolean = this is Option.None
+    fun isNone(): Boolean = this is Option.None<*>
 }
 
-fun <T> Some(value: T): Option<T> = Option.Some(value)
+inline fun <reified T : Any> Some(value: T): Option = Option.Some<T>(value, typeOf<T>())
 
-fun <T> None(): Option<T> = Option.None
+inline fun <reified T : Any> None(): Option = Option.None<T>(typeOf<T>())
