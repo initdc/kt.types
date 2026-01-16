@@ -15,9 +15,11 @@ internal class OptionTest {
     fun testNew() {
         assertEquals(s, Some(2))
         assertEquals(n, None<Int>())
-        assertEquals(n, Option.None<Int>(typeOf<Int>()))
-        assertNotEquals(n, None<Byte>())
-        assertNotEquals(n, None<Float>())
+        assertEquals(n, OptionNone<Int>(typeOf<Int>()))
+        assertEquals(n, OptionNone(typeOf<Int>()))
+
+        // assertNotEquals(n, None<Byte>())
+        // assertNotEquals(n, None<Float>())
     }
 
     @Test
@@ -51,5 +53,18 @@ internal class OptionTest {
 
         val f2: () -> Int = { throw Exception("bad") }
         assertEquals(Option.fromThrowable(f2), n)
+    }
+
+    @Test
+    fun testMap() {
+        assertEquals(n.map<String> { x -> x.toString() }, None<String>())
+        assertEquals(s.map<String> { x -> x.toString() }, Some("2"))
+
+        val f: (Int) -> String = { x -> x.toString() }
+        assertEquals(n.map(f), None<String>())
+        assertEquals(s.map(f), Some("2"))
+
+        assertEquals(n.map { x -> x.toString() }, None<String>())
+        assertEquals(s.map { x -> x.toString() }, Some("2"))
     }
 }

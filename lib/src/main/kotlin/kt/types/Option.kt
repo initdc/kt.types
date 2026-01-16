@@ -3,35 +3,42 @@ package kt.types
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
-sealed class Option {
-    data class Some<T : Any>(private val value: T, val valueType: KType) : Option()
+data class OptionSome<T : Any>(val value: T, val valueType: KType) : Option<T>()
 
-    data class None<T : Any>(val valueType: KType) : Option()
+data class OptionNone<T : Any>(val valueType: KType) : Option<T>()
 
+sealed class Option<T> {
     companion object {
-        inline fun <reified T : Any> from(value: T): Option = Option.Some<T>(value, typeOf<T>())
+        inline fun <reified T : Any> from(value: T): Option<T> = Some<T>(value)
 
-        inline fun <reified T : Any> fromNullable(value: T?): Option {
+        inline fun <reified T : Any> fromNullable(value: T?): Option<T> {
             if (value == null) {
-                return Option.None<T>(typeOf<T>())
+                return None<T>()
             }
-            return Option.Some<T>(value, typeOf<T>())
+            return Some<T>(value)
         }
 
-        inline fun <reified T : Any> fromThrowable(f: () -> T): Option {
+        inline fun <reified T : Any> fromThrowable(f: () -> T): Option<T> {
             try {
-                return Option.Some<T>(f(), typeOf<T>())
+                return Some<T>(f())
             } catch (e: Exception) {
-                return Option.None<T>(typeOf<T>())
+                return None<T>()
             }
         }
     }
 
-    fun isSome(): Boolean = this is Option.Some<*>
+    fun isSome(): Boolean = this is OptionSome<*>
 
-    fun isNone(): Boolean = this is Option.None<*>
+    fun isNone(): Boolean = this is OptionNone<*>
+
+    inline fun <reified U : Any> map(f: (T) -> U): Option<U> {
+        if (this is OptionSome<T>) {
+            return Some<U>(f(this.value))
+        }
+        return None<U>()
+    }
 }
 
-inline fun <reified T : Any> Some(value: T): Option = Option.Some<T>(value, typeOf<T>())
+inline fun <reified T : Any> Some(value: T): Option<T> = OptionSome<T>(value, typeOf<T>())
 
-inline fun <reified T : Any> None(): Option = Option.None<T>(typeOf<T>())
+inline fun <reified T : Any> None(): Option<T> = OptionNone<T>(typeOf<T>())
