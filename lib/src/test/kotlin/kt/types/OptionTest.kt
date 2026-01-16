@@ -19,8 +19,10 @@ internal class OptionTest {
         assertEquals(n, OptionNone(typeOf<Int>(), Int::class))
 
         assertNotEquals(n, OptionNone<Int>(typeOf<Byte>(), Int::class))
-        assertNotEquals(n, None<Byte>())
-        assertNotEquals(n, None<Float>())
+        assertNotEquals(n, OptionNone<Byte>(typeOf<Byte>(), Byte::class) as Option<*>)
+        assertNotEquals(n, OptionNone<Float>(typeOf<Float>(), Float::class) as Option<*>)
+        assertNotEquals(n, None<Byte>() as Option<*>)
+        assertNotEquals(n, None<Float>() as Option<*>)
     }
 
     @Test
