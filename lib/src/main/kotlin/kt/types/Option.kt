@@ -4,7 +4,7 @@ import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 sealed class Option {
-    data class Some<T : Any>(private val value: T, val valueType: KType) : Option()
+    data class Some<T : Any>(val value: T, val valueType: KType) : Option()
 
     data class None<T : Any>(val valueType: KType) : Option()
 
@@ -30,6 +30,20 @@ sealed class Option {
     fun isSome(): Boolean = this is Option.Some<*>
 
     fun isNone(): Boolean = this is Option.None<*>
+
+    inline fun <reified U : Any> map(f: (Any) -> U): Option {
+        if (this is Option.Some<*>) {
+            return Some<U>(f(this.value))
+        }
+        return None<U>()
+    }
+
+    // inline fun <reified E : Any> okOr(error: E): Result<T, E> {
+    //     if (this is Option.Some<*>) {
+    //         return Ok<T, E>(this.value)
+    //     }
+    //     return Err<T, E>(error)
+    // }
 }
 
 inline fun <reified T : Any> Some(value: T): Option = Option.Some<T>(value, typeOf<T>())

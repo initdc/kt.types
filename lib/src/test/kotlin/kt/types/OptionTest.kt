@@ -52,4 +52,10 @@ internal class OptionTest {
         val f2: () -> Int = { throw Exception("bad") }
         assertEquals(Option.fromThrowable(f2), n)
     }
+
+    @Test
+    fun testMap() {
+        assertEquals(n.map<String> { x -> x.toString() }, None<String>())
+        assertEquals(s.map<String> { x -> x.toString() }, Some("2"))
+    }
 }
