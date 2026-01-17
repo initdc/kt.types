@@ -37,6 +37,13 @@ sealed class Option<T> {
         }
         return None<U>()
     }
+
+    // inline fun <reified E : Any> okOr(error: E): Result<T, E> {
+    //     if (this is Option.Some<*>) {
+    //         return Ok<T, E>(this.value)
+    //     }
+    //     return Err<T, E>(error)
+    // }
 }
 
 inline fun <reified T : Any> Some(value: T): Option<T> = OptionSome<T>(value, typeOf<T>())

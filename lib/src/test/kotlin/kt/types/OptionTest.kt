@@ -16,6 +16,7 @@ internal class OptionTest {
         assertEquals(s, Some(2))
         assertEquals(n, None<Int>())
         assertEquals(n, OptionNone<Int>(typeOf<Int>()))
+        assertEquals(n, OptionNone<Byte>(typeOf<Int>()) as Option<*>)
         assertEquals(n, OptionNone(typeOf<Int>()))
 
         assertNotEquals(n, OptionNone<Int>(typeOf<Byte>()))
