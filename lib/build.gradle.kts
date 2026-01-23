@@ -5,40 +5,143 @@
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/9.2.1/userguide/building_java_projects.html in the Gradle documentation.
  */
 
+import com.android.build.api.dsl.LibraryExtension
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    alias(libs.plugins.kotlin.jvm)
-
-    // Apply the java-library plugin for API and implementation separation.
-    `java-library`
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.vanniktech.mavenPublish)
 }
 
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
+val groupId = "io.github.initdc"
+val artifactId = "types"
+val version = "0.0.1"
+
+kotlin {
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    // Tier 1
+    macosArm64()
+    iosSimulatorArm64()
+    iosArm64()
+
+    // Tier 2
+    linuxX64()
+    linuxArm64()
+
+    // Tier 3
+    mingwX64()
+    macosX64()
+    iosX64()
+
+    androidLibrary {
+        androidResources {
+            enable = false
+        }
+
+        namespace = groupId
+        compileSdk = 36
+        minSdk = 24
+
+        withJava()
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
+
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    sourceSets {
+        val commonMain by getting {
+            kotlin.srcDir("src/main/kotlin")
+            dependencies {}
+        }
+
+        val commonTest by getting {
+            kotlin.srcDir("src/test/kotlin")
+            dependencies {
+                implementation(libs.kotlin.test)
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.junit.jupiter.engine)
+            }
+        }
+    }
 }
 
-dependencies {
-    // Use the Kotlin Test integration.
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
-
-    // Use the JUnit 5 integration.
-    testImplementation(libs.junit.jupiter.engine)
-
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api(libs.commons.math3)
-
-    // This dependency is used internally, and not exposed to consumers on their own compile
-    // classpath.
-    implementation(libs.guava)
+tasks.withType<Test> {
+    testLogging {
+        showExceptions = true
+        showStandardStreams = true
+        events = setOf(TestLogEvent.PASSED, TestLogEvent.FAILED, TestLogEvent.SKIPPED)
+        exceptionFormat = TestExceptionFormat.FULL
+    }
 }
 
-// Apply a specific Java toolchain to ease working on different environments.
-java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+val user = "initdc"
+val repo = "kt.types"
+val github = "github.com/$user/$repo"
 
-tasks.named<Test>("test") {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+    coordinates(groupId, artifactId, version)
+
+    pom {
+        name = repo
+        description = "Bring the Rust [Result Option] types to Kotlin"
+        url = "https://$github"
+
+        licenses {
+            license {
+                name = "Mozilla Public License 2.0"
+                url = "https://www.mozilla.org/MPL/2.0/"
+            }
+        }
+        developers {
+            developer {
+                id = user
+                name = user
+                email = "initd@outlook.com"
+            }
+        }
+        scm {
+            connection = "scm:git:git://$github.git"
+            developerConnection = "scm:git:ssh://$github.git"
+            url = "https://$github"
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "github"
+            url = uri("https://maven.pkg.github.com/$user/$repo")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GHPUSER")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GHPKEY")
+            }
+        }
+    }
+
+    // publications {
+    //     register<MavenPublication>("lib") {
+    //         groupId = "kt.lib"
+    //         from(components["kotlin"])
+    //     }
+    // }
 }
