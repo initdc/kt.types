@@ -8,18 +8,20 @@ Add the dependency to your `build.gradle.kts`:
 
 ```gradle
 dependencies {
-    implementation("com.github.initdc:kt.types")
+    implementation("io.github.initdc:types:0.1.0")
 }
 ```
 
 ## Usage
 
 ```kotlin
-val s = Some(2)
-val n = None<Int>()
+import kt.types.*
 
-val r = Ok<Int, String>(2)
-val e = Err<Int, String>("error")
+val s = some(2)
+val n = none<Int>()
+
+val r = ok<Int, String>(2)
+val e = err<Int, String>("error")
 ```
 
 ## Development
