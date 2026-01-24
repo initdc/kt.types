@@ -5,9 +5,8 @@
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/9.2.1/userguide/building_java_projects.html in the Gradle documentation.
  */
 
-import com.android.build.api.dsl.LibraryExtension
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -21,11 +20,7 @@ val artifactId = "types"
 val version = "0.0.1"
 
 kotlin {
-    jvm {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
+    jvm()
 
     // Tier 1
     macosArm64()
@@ -62,19 +57,19 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             kotlin.srcDir("src/main/kotlin")
             dependencies {}
         }
 
-        val commonTest by getting {
+        commonTest {
             kotlin.srcDir("src/test/kotlin")
             dependencies {
                 implementation(libs.kotlin.test)
             }
         }
 
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 implementation(libs.junit.jupiter.engine)
             }
@@ -84,10 +79,8 @@ kotlin {
 
 tasks.withType<Test> {
     testLogging {
-        showExceptions = true
-        showStandardStreams = true
-        events = setOf(TestLogEvent.PASSED, TestLogEvent.FAILED, TestLogEvent.SKIPPED)
-        exceptionFormat = TestExceptionFormat.FULL
+        events = setOf(PASSED, SKIPPED, FAILED, STANDARD_OUT, STANDARD_ERROR)
+        exceptionFormat = FULL
     }
 }
 
@@ -138,10 +131,16 @@ publishing {
         }
     }
 
-    // publications {
-    //     register<MavenPublication>("lib") {
-    //         groupId = "kt.lib"
-    //         from(components["kotlin"])
-    //     }
-    // }
+    publications {
+        register<MavenPublication>("Lib") {
+            from(components["kotlin"])
+        }
+    }
+
+    publications {
+        register<MavenPublication>("Alt") {
+            groupId = "kt"
+            from(components["kotlin"])
+        }
+    }
 }
