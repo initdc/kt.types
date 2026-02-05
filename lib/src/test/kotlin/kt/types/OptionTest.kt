@@ -15,13 +15,13 @@ internal class OptionTest {
     fun testNew() {
         assertEquals(s, some(2))
         assertEquals(n, none<Int>())
-        assertEquals(n, OptionNone<Int>(typeOf<Int>()))
-        assertEquals(n, OptionNone<Byte>(typeOf<Int>()) as Option<*>)
-        assertEquals(n, OptionNone(typeOf<Int>()))
+        assertEquals(n, OptionNone<Int>(typeOf<Int>(), Int::class))
+        // assertEquals(n, OptionNone<Byte>(typeOf<Int>(), Byte::class) as Option<*>)
+        assertEquals(n, OptionNone(typeOf<Int>(), Int::class))
 
-        assertNotEquals(n, OptionNone<Int>(typeOf<Byte>()))
-        assertNotEquals(n, OptionNone<Byte>(typeOf<Byte>()) as Option<*>)
-        assertNotEquals(n, OptionNone<Float>(typeOf<Float>()) as Option<*>)
+        assertNotEquals(n, OptionNone(typeOf<Byte>(), Int::class))
+        assertNotEquals(n, OptionNone(typeOf<Byte>(), Byte::class) as Option<*>)
+        assertNotEquals(n, OptionNone(typeOf<Float>(), Float::class) as Option<*>)
         assertNotEquals(n, none<Byte>() as Option<*>)
         assertNotEquals(n, none<Float>() as Option<*>)
     }

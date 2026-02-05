@@ -1,15 +1,18 @@
 package kt.types
 
+import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 data class OptionSome<T : Any>(
     val value: T,
     val valueType: KType,
+    val valueClass: KClass<T>,
 ) : Option<T>()
 
 data class OptionNone<T : Any>(
     val valueType: KType,
+    val valueClass: KClass<T>,
 ) : Option<T>()
 
 sealed class Option<T> {
@@ -51,6 +54,6 @@ sealed class Option<T> {
     // }
 }
 
-inline fun <reified T : Any> some(value: T): Option<T> = OptionSome<T>(value, typeOf<T>())
+inline fun <reified T : Any> some(value: T): Option<T> = OptionSome<T>(value, typeOf<T>(), T::class)
 
-inline fun <reified T : Any> none(): Option<T> = OptionNone<T>(typeOf<T>())
+inline fun <reified T : Any> none(): Option<T> = OptionNone<T>(typeOf<T>(), T::class)
